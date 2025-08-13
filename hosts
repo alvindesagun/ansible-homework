@@ -1,6 +1,6 @@
 [webservers]
-18.221.30.214
-18.216.108.186
-3.21.204.20
-18.117.224.128
-18.222.229.98
+webserver-1 ansible_host=18.221.30.214
+webserver-2 ansible_host=18.216.108.186
+webserver-3 ansible_host=3.21.204.20
+webserver-4 ansible_host=18.117.224.128
+webserver-5 ansible_host=18.222.229.98
