@@ -1,10 +1,8 @@
 - name: Install and configure WordPress
-  hosts: webservers  # Target hosts in your Ansible inventory file
+  hosts: webservers    # Target hosts in Ansible inventory file
   become: yes          # Run all tasks with elevated privileges (sudo)
 
   vars:
-    # Use Ansible Vault to secure these variables!
-    # For example: ansible-vault create group_vars/webservers/vault.yml
     db_name: "wordpress_db"
     db_user: "wordpress_user"
     db_password: "Kaizen-may-2025"
