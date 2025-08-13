@@ -1,0 +1,91 @@
+- name: Install and configure WordPress
+  hosts: webservers  # Target hosts in your Ansible inventory file
+  become: yes          # Run all tasks with elevated privileges (sudo)
+
+  vars:
+    # Use Ansible Vault to secure these variables!
+    # For example: ansible-vault create group_vars/webservers/vault.yml
+    db_name: "wordpress_db"
+    db_user: "wordpress_user"
+    db_password: "Kaizen-may-2025"
+
+  tasks:
+    - name: Ensure Apache and MariaDB are installed
+      ansible.builtin.apt:
+        name:
+          - apache2
+          - mariadb-server
+        state: present
+        update_cache: yes
+
+    - name: Install PHP and essential PHP modules for Ubuntu
+      ansible.builtin.apt:
+        name:
+          - php
+          - php-mysql
+          - php-gd
+          - php-fpm
+          - php-xml
+          - php-mbstring
+          - php-json
+          - libapache2-mod-php
+        state: present
+
+    - name: Install the required Python library for MySQL support on Ubuntu
+      ansible.builtin.apt:
+        name: python3-mysqldb
+        state: present
+
+    - name: Ensure Apache and MariaDB services are started and enabled
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - apache2
+        - mariadb
+
+    - name: Create MariaDB database for WordPress
+      community.mysql.mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: root
+
+    - name: Create MariaDB user for WordPress
+      community.mysql.mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        state: present
+        host: "localhost"
+
+    - name: Download the latest version of WordPress
+      ansible.builtin.get_url:
+        url: https://wordpress.org/latest.tar.gz
+        dest: /tmp/wordpress.tar.gz
+        mode: '0644'
+
+    - name: Extract WordPress archive
+      ansible.builtin.unarchive:
+        src: /tmp/wordpress.tar.gz
+        dest: /tmp
+        remote_src: yes
+
+    - name: Move WordPress files to Apache document root
+      ansible.builtin.copy:
+        src: /tmp/wordpress/
+        dest: /var/www/html/
+        remote_src: yes
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Delete default index.html from apache
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: Restart Apache to apply all changes
+      ansible.builtin.service:
+        name: apache2
+        state: restarted
